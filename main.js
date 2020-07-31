@@ -59,7 +59,7 @@ inputTodo.addEventListener('keyup', (e) => {
                 schedule.pending.push(inputText);
                 localStorage[inputNickName] = JSON.stringify(schedule);
 
-                updatePending();
+                addPending();
             }
         }
     }
@@ -70,9 +70,76 @@ function updatePending() {
 
     let storageObject = localStorage[inputNickName];
     schedule = JSON.parse(storageObject);
-    console.log(schedule.pending.length);
 
-    for (let idx = 0; idx < schedule.pending.length; ++idx) {
+    schedule.pending.forEach(pend => {
 
-    }
+        let div_row = document.createElement('div');
+        let div_col = document.createElement('div');
+        let div_row_1 = document.createElement('div');
+        let div_col_1 = document.createElement('div');
+        let input = document.createElement('input');
+        let div_col_2 = document.createElement('div');
+        let label = document.createElement('label');
+
+        div_row.classList.add('row');
+        div_col.classList.add('col');
+        div_row_1.classList.add('row');
+        div_col_1.classList.add('col-md-1');
+        input.setAttribute('type', 'checkbox');
+        input.id = "pendingCheck";
+        div_col_2.classList.add('col');
+        div_col_2.id = "pendingTodo";
+        label.setAttribute('for', 'pendingCheck');
+
+
+        label.appendChild(div_col_2);
+        div_col_1.appendChild(input);
+        div_row_1.appendChild(div_col_1);
+        div_row_1.appendChild(label);
+        div_col.appendChild(div_row_1);
+        div_row.appendChild(div_col);
+        div_col.appendChild(document.createElement('br'));
+
+
+        pending.appendChild(div_row);
+        div_col_2.innerHTML = pend;
+    })
+}
+
+function addPending() {
+    let pending = document.querySelector('.pending');
+
+    let storageObject = localStorage[inputNickName];
+    schedule = JSON.parse(storageObject);
+
+    let div_row = document.createElement('div');
+    let div_col = document.createElement('div');
+    let div_row_1 = document.createElement('div');
+    let div_col_1 = document.createElement('div');
+    let input = document.createElement('input');
+    let div_col_2 = document.createElement('div');
+    let label = document.createElement('label');
+
+    div_row.classList.add('row');
+    div_col.classList.add('col');
+    div_row_1.classList.add('row');
+    div_col_1.classList.add('col-md-1');
+    input.setAttribute('type', 'checkbox');
+    input.id = "pendingCheck";
+    div_col_2.classList.add('col');
+    div_col_2.id = "pendingTodo";
+    label.setAttribute('for', 'pendingCheck');
+
+
+    label.appendChild(div_col_2);
+    div_col_1.appendChild(input);
+    div_row_1.appendChild(div_col_1);
+    div_row_1.appendChild(label);
+    div_col.appendChild(div_row_1);
+    div_row.appendChild(div_col);
+    div_col.appendChild(document.createElement('br'));
+
+    pending.appendChild(div_row);
+
+    div_col_2.innerHTML = schedule.pending[schedule.pending.length - 1];
 }
