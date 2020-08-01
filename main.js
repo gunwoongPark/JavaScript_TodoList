@@ -1,29 +1,33 @@
-function storageInit() {
-    localStorage.clear();
-}
-// storageInit();
+// localStorage.clear();
 
-//로그인 확인 여부 변수
-var isLogin = false;
-// 입력된 닉네임 정보 변수
-var inputNickName = ""
-// 입력 바 객체
-let inputTodo = document.querySelector("#inputTodo");
+let clock = document.querySelector('#clock');
+
+setInterval(getTime, 1000);
+
+function getTime() {
+    const time = new Date();
+    const hour = time.getHours();
+    const minutes = time.getMinutes();
+    const seconds = time.getSeconds();
+
+    clock.innerHTML = `${hour < 10 ? `0${hour}` : hour}시 ${minutes < 10 ? `0${minutes}` : minutes}분 ${seconds < 10 ? `0${seconds}` : seconds}초`
+}
 
 console.log(localStorage);
 
-inputTodo.addEventListener('keyup', (e) => {
+if (localStorage.getItem('isLogin') === 'false') {
+    let inputTodo = document.querySelector('#inputTodo');
 
-    // 로그인이 안 된 상태 -> 회원가입 후 로그인 or 로그인
-    if (!isLogin) {
+    inputTodo.addEventListener('keyup', (e) => {
+
         if (e.keyCode === 13) {
             // 1문자 이상은 입력하도록 예외처리
             if (e.target.value.length > 0) {
 
-                inputNickName = e.target.value;
+                let inputNickName = e.target.value;
                 e.target.value = "";
 
-                // 회원이 아닌 상태 -> 회원가입
+                // 회원이 아닌 상태 -> 회원가입?
                 if (localStorage.getItem(inputNickName) === null) {
                     // 저장소에 들어갈 객체
                     var schedule = {
@@ -35,111 +39,192 @@ inputTodo.addEventListener('keyup', (e) => {
 
                 // 로그인
                 inputTodo.setAttribute('placeholder', 'Hi ' + inputNickName + ' please type your todo');
+                localStorage.setItem('isLogin', 'true');
+                localStorage.setItem('current', inputNickName);
 
-                updatePending();
+                location.reload(true);
 
-                isLogin = true;
+                loginPending();
+                loginFinished()
             }
         }
-    }
+    });
+}
 
-    // 로그인이 된 상태 -> todo 기입
-    else {
+else {
+
+    inputTodo.setAttribute('placeholder', 'Hi ' + localStorage.getItem('current') + ' please type your todo.    If you want to logout, then type in the logout');
+    loginPending();
+    loginFinished();
+    inputTodo.addEventListener('keyup', (e) => {
         if (e.keyCode === 13) {
-            // 1문자 이상은 입력하도록 예외처리
             if (e.target.value.length > 0) {
+                if (e.target.value.toLowerCase() === "logout") {
+                    localStorage.isLogin = false;
+                    localStorage.current = 'none';
+                    location.reload(true);
+                }
                 let inputText = e.target.value;
                 e.target.value = "";
 
-                // localstorage에서 데이터를 객체로 가져옴
-                let storageObject = localStorage[inputNickName];
+                let storageObject = localStorage[localStorage.getItem('current')];
                 schedule = JSON.parse(storageObject);
 
-                // localstorage에 데이터를 객체로 삽입
                 schedule.pending.push(inputText);
-                localStorage[inputNickName] = JSON.stringify(schedule);
+                localStorage[localStorage.getItem('current')] = JSON.stringify(schedule);
 
-                addPending();
+                addTodo();
+                location.reload(true);
             }
         }
-    }
-});
+    });
 
-function updatePending() {
-    let pending = document.querySelector('.pending');
+    checkTodo();
+    deleteTodo();
 
-    let storageObject = localStorage[inputNickName];
-    schedule = JSON.parse(storageObject);
-
-    schedule.pending.forEach(pend => {
-
-        let div_row = document.createElement('div');
-        let div_col = document.createElement('div');
-        let div_row_1 = document.createElement('div');
-        let div_col_1 = document.createElement('div');
-        let input = document.createElement('input');
-        let div_col_2 = document.createElement('div');
-        let label = document.createElement('label');
-
-        div_row.classList.add('row');
-        div_col.classList.add('col');
-        div_row_1.classList.add('row');
-        div_col_1.classList.add('col-md-1');
-        input.setAttribute('type', 'checkbox');
-        input.id = "pendingCheck";
-        div_col_2.classList.add('col');
-        div_col_2.id = "pendingTodo";
-        label.setAttribute('for', 'pendingCheck');
-
-
-        label.appendChild(div_col_2);
-        div_col_1.appendChild(input);
-        div_row_1.appendChild(div_col_1);
-        div_row_1.appendChild(label);
-        div_col.appendChild(div_row_1);
-        div_row.appendChild(div_col);
-        div_col.appendChild(document.createElement('br'));
-
-
-        pending.appendChild(div_row);
-        div_col_2.innerHTML = pend;
-    })
 }
 
-function addPending() {
+function loginPending() {
     let pending = document.querySelector('.pending');
 
-    let storageObject = localStorage[inputNickName];
+    let storageObject = localStorage[localStorage.getItem('current')];
     schedule = JSON.parse(storageObject);
 
-    let div_row = document.createElement('div');
-    let div_col = document.createElement('div');
-    let div_row_1 = document.createElement('div');
-    let div_col_1 = document.createElement('div');
+    schedule.pending.forEach((pend, index) => {
+        let container = document.createElement('div');
+        let divRow = document.createElement('div');
+        let divCol1 = document.createElement('div');
+        let input = document.createElement('input');
+        let divCol2 = document.createElement('div');
+
+        container.id = "pendContainer";
+        divRow.classList.add('row');
+        divCol1.classList.add('col-md-1');
+        input.setAttribute('type', 'checkbox');
+        input.setAttribute('name', 'checkList');
+        divCol2.classList.add('col')
+        divCol2.id = 'todoText'
+
+        divCol1.appendChild(input);
+        divRow.appendChild(divCol1);
+        divRow.appendChild(divCol2);
+        container.appendChild(divRow);
+        container.appendChild(document.createElement('br'));
+
+        pending.appendChild(container);
+        divCol2.innerHTML = pend;
+    });
+}
+
+function loginFinished() {
+    let finished = document.querySelector('.finished');
+
+    let storageObject = localStorage[localStorage.getItem('current')];
+    schedule = JSON.parse(storageObject);
+
+    schedule.finished.forEach((finish, index) => {
+        let container = document.createElement('div');
+        let divRow = document.createElement('div');
+        let divCol1 = document.createElement('div');
+        let divCol2 = document.createElement('div');
+        let button = document.createElement('button');
+
+        container.id = "finishContainer";
+        divRow.classList.add('row');
+        divCol1.classList.add('col');
+        divCol2.classList.add('col-md-1');
+        button.classList.add('btn');
+        button.classList.add('btn-danger');
+        button.classList.add('btn-sm');
+        button.id = "delBtn"
+        button.innerHTML = "Delete";
+        button.setAttribute('name', 'delBtnList');
+
+        divCol2.appendChild(button);
+        divRow.appendChild(divCol1);
+        divRow.appendChild(divCol2);
+        container.appendChild(divRow);
+        container.appendChild(document.createElement('br'));
+
+        finished.appendChild(container);
+        divCol1.innerHTML = finish
+    });
+}
+
+function addTodo() {
+    let pending = document.querySelector('.pending');
+
+    let storageObject = localStorage[localStorage.getItem('current')];
+    schedule = JSON.parse(storageObject);
+
+    let container = document.createElement('div');
+    let divRow = document.createElement('div');
+    let divCol1 = document.createElement('div');
     let input = document.createElement('input');
-    let div_col_2 = document.createElement('div');
-    let label = document.createElement('label');
+    let divCol2 = document.createElement('div');
 
-    div_row.classList.add('row');
-    div_col.classList.add('col');
-    div_row_1.classList.add('row');
-    div_col_1.classList.add('col-md-1');
+    container.id = "pendContainer";
+    divRow.classList.add('row');
+    divCol1.classList.add('col-md-1');
     input.setAttribute('type', 'checkbox');
-    input.id = "pendingCheck";
-    div_col_2.classList.add('col');
-    div_col_2.id = "pendingTodo";
-    label.setAttribute('for', 'pendingCheck');
+    input.setAttribute('name', 'checkList');
+    divCol2.classList.add('col')
+    divCol2.id = 'todoText'
 
+    divCol1.appendChild(input);
+    divRow.appendChild(divCol1);
+    divRow.appendChild(divCol2);
+    container.appendChild(divRow);
+    container.appendChild(document.createElement('br'));
 
-    label.appendChild(div_col_2);
-    div_col_1.appendChild(input);
-    div_row_1.appendChild(div_col_1);
-    div_row_1.appendChild(label);
-    div_col.appendChild(div_row_1);
-    div_row.appendChild(div_col);
-    div_col.appendChild(document.createElement('br'));
+    pending.appendChild(container);
+    divCol2.innerHTML = schedule.pending[schedule.pending.length - 1];
+}
 
-    pending.appendChild(div_row);
+function checkTodo() {
+    let checkList = document.getElementsByName('checkList');
 
-    div_col_2.innerHTML = schedule.pending[schedule.pending.length - 1];
+    checkList.forEach((pend, index) => {
+        pend.addEventListener('click', (e) => {
+            let delDiv = pend.parentElement.parentElement.parentElement;
+            let delText = delDiv.querySelector('#todoText');
+
+            let storageObject = localStorage[localStorage.getItem('current')];
+            schedule = JSON.parse(storageObject);
+
+            let delIndex = schedule.pending.indexOf(delText.innerHTML);
+
+            schedule.pending.splice(delIndex, 1);
+
+            schedule.finished.push(delText.innerHTML);
+
+            localStorage[localStorage.getItem('current')] = JSON.stringify(schedule);
+
+            location.reload(true);
+
+        });
+    });
+}
+
+function deleteTodo() {
+    let btnList = document.getElementsByName('delBtnList');
+    console.log(btnList);
+
+    btnList.forEach((btn, index) => {
+        btn.addEventListener('click', (e) => {
+            let delDiv = btn.parentElement.parentElement.parentElement;
+            let delText = delDiv.querySelector('#delBtn');
+
+            let storageObject = localStorage[localStorage.getItem('current')];
+            schedule = JSON.parse(storageObject);
+
+            let delIndex = schedule.finished.indexOf(delText.innerHTML);
+
+            schedule.finished.splice(delIndex, 1);
+
+            localStorage[localStorage.getItem('current')] = JSON.stringify(schedule);
+
+            location.reload(true);
+        });
+    });
 }
