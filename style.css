@@ -6,3 +6,10 @@
     background-color: #fff;
     border-top: 2px dashed #8c8b8b;
 }
+
+#clock{
+    font-size: x-large;
+    position:fixed;
+    bottom:5%;
+    right:5%;
+}
