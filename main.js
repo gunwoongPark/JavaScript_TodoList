@@ -6,7 +6,6 @@ if (localStorage.length == 0) {
 }
 
 let clock = document.querySelector('#clock');
-
 setInterval(getTime, 1000);
 
 function getTime() {
@@ -14,41 +13,27 @@ function getTime() {
     const hour = time.getHours();
     const minutes = time.getMinutes();
     const seconds = time.getSeconds();
-
     clock.innerHTML = `${hour < 10 ? `0${hour}` : hour}시 ${minutes < 10 ? `0${minutes}` : minutes}분 ${seconds < 10 ? `0${seconds}` : seconds}초`
 }
 
-console.log(localStorage);
-
 if (localStorage.getItem('isLogin') === 'false') {
-    let inputTodo = document.querySelector('#inputTodo');
-
-    inputTodo.addEventListener('keyup', (e) => {
-
+    let inputNickName = document.querySelector('#inputNickname');
+    inputNickName.addEventListener('keyup', (e) => {
         if (e.keyCode === 13) {
-            // 1문자 이상은 입력하도록 예외처리
             if (e.target.value.length > 0) {
-
-                let inputNickName = e.target.value;
+                let inputText = e.target.value;
                 e.target.value = "";
-
-                // 회원이 아닌 상태 -> 회원가입?
-                if (localStorage.getItem(inputNickName) === null) {
-                    // 저장소에 들어갈 객체
+                if (localStorage.getItem(inputText) === null) {
                     var schedule = {
                         pending: [],
                         finished: []
                     }
-                    localStorage[inputNickName] = JSON.stringify(schedule);
+                    localStorage[inputText] = JSON.stringify(schedule);
                 }
-
-                // 로그인
-                inputTodo.setAttribute('placeholder', 'Hi ' + inputNickName + ' please type your todo');
+                inputTodo.setAttribute('placeholder', 'Hi ' + inputText + ' please type your todo');
                 localStorage.setItem('isLogin', 'true');
-                localStorage.setItem('current', inputNickName);
-
+                localStorage.setItem('current', inputText);
                 location.reload(true);
-
                 loginPending();
                 loginFinished()
             }
@@ -57,7 +42,10 @@ if (localStorage.getItem('isLogin') === 'false') {
 }
 
 else {
-
+    let divLogin = document.querySelector('.Login');
+    let divMain = document.querySelector('.Main');
+    divLogin.style.display = 'none';
+    divMain.style.display = "";
     inputTodo.setAttribute('placeholder', 'Hi ' + localStorage.getItem('current') + ' please type your todo.    If you want to logout, then type in the logout');
     loginPending();
     loginFinished();
@@ -71,48 +59,53 @@ else {
                 }
                 let inputText = e.target.value;
                 e.target.value = "";
-
                 let storageObject = localStorage[localStorage.getItem('current')];
                 schedule = JSON.parse(storageObject);
-
                 schedule.pending.push(inputText);
                 localStorage[localStorage.getItem('current')] = JSON.stringify(schedule);
-
                 addTodo();
                 location.reload(true);
             }
         }
     });
-
-    checkTodo();
-    deleteTodo();
-
+    checkPend();
+    deletePend();
+    checkFinish();
+    deleteFinish();
 }
 
 function loginPending() {
     let pending = document.querySelector('.pending');
-
     let storageObject = localStorage[localStorage.getItem('current')];
     schedule = JSON.parse(storageObject);
-
     schedule.pending.forEach((pend, index) => {
         let container = document.createElement('div');
         let divRow = document.createElement('div');
         let divCol1 = document.createElement('div');
         let input = document.createElement('input');
         let divCol2 = document.createElement('div');
+        let divCol3 = document.createElement('div');
+        let button = document.createElement('button');
 
-        container.id = "pendContainer";
+        container.id = 'pendContainer';
         divRow.classList.add('row');
         divCol1.classList.add('col-md-1');
         input.setAttribute('type', 'checkbox');
-        input.setAttribute('name', 'checkList');
-        divCol2.classList.add('col')
-        divCol2.id = 'todoText'
+        input.setAttribute('name', 'pendCheckList');
+        divCol2.classList.add('col-md-9');
+        divCol2.id = "pendText";
+        divCol3.classList.add('col-md-1');
+        button.classList.add('pendBtn');
+        button.classList.add('btn-danger');
+        button.classList.add('btn-sm');
+        button.setAttribute('name', "pendBtnList");
+        button.innerHTML = "Delete";
 
+        divCol3.appendChild(button);
         divCol1.appendChild(input);
         divRow.appendChild(divCol1);
         divRow.appendChild(divCol2);
+        divRow.appendChild(divCol3);
         container.appendChild(divRow);
         container.appendChild(document.createElement('br'));
 
@@ -123,42 +116,47 @@ function loginPending() {
 
 function loginFinished() {
     let finished = document.querySelector('.finished');
-
     let storageObject = localStorage[localStorage.getItem('current')];
     schedule = JSON.parse(storageObject);
-
     schedule.finished.forEach((finish, index) => {
+
         let container = document.createElement('div');
         let divRow = document.createElement('div');
         let divCol1 = document.createElement('div');
+        let input = document.createElement('input');
         let divCol2 = document.createElement('div');
+        let divCol3 = document.createElement('div');
         let button = document.createElement('button');
 
-        container.id = "finishContainer";
+        container.id = 'finishContainer';
         divRow.classList.add('row');
-        divCol1.classList.add('col');
-        divCol2.classList.add('col-md-1');
-        button.classList.add('btn');
+        divCol1.classList.add('col-md-1');
+        input.setAttribute('type', 'checkbox');
+        input.setAttribute('name', 'finishCheckList');
+        divCol2.classList.add('col-md-9');
+        divCol2.id = "finishText";
+        divCol3.classList.add('col-md-1');
+        button.classList.add('finishBtn');
         button.classList.add('btn-danger');
         button.classList.add('btn-sm');
-        button.id = "delBtn"
+        button.setAttribute('name', "finishBtnList");
         button.innerHTML = "Delete";
-        button.setAttribute('name', 'delBtnList');
 
-        divCol2.appendChild(button);
+        divCol3.appendChild(button);
+        divCol1.appendChild(input);
         divRow.appendChild(divCol1);
         divRow.appendChild(divCol2);
+        divRow.appendChild(divCol3);
         container.appendChild(divRow);
         container.appendChild(document.createElement('br'));
 
         finished.appendChild(container);
-        divCol1.innerHTML = finish
+        divCol2.innerHTML = finish
     });
 }
 
 function addTodo() {
     let pending = document.querySelector('.pending');
-
     let storageObject = localStorage[localStorage.getItem('current')];
     schedule = JSON.parse(storageObject);
 
@@ -167,18 +165,28 @@ function addTodo() {
     let divCol1 = document.createElement('div');
     let input = document.createElement('input');
     let divCol2 = document.createElement('div');
+    let divCol3 = document.createElement('div');
+    let button = document.createElement('button');
 
-    container.id = "pendContainer";
+    container.id = 'pendContainer';
     divRow.classList.add('row');
     divCol1.classList.add('col-md-1');
     input.setAttribute('type', 'checkbox');
-    input.setAttribute('name', 'checkList');
-    divCol2.classList.add('col')
-    divCol2.id = 'todoText'
+    input.setAttribute('name', 'pendCheckList');
+    divCol2.classList.add('col-md-9');
+    divCol2.id = "pendText";
+    divCol3.classList.add('col-md-1');
+    button.classList.add('pendBtn');
+    button.classList.add('btn-danger');
+    button.classList.add('btn-sm');
+    button.setAttribute('name', "pendBtnList");
+    button.innerHTML = "Delete";
 
+    divCol3.appendChild(button);
     divCol1.appendChild(input);
     divRow.appendChild(divCol1);
     divRow.appendChild(divCol2);
+    divRow.appendChild(divCol3);
     container.appendChild(divRow);
     container.appendChild(document.createElement('br'));
 
@@ -186,49 +194,67 @@ function addTodo() {
     divCol2.innerHTML = schedule.pending[schedule.pending.length - 1];
 }
 
-function checkTodo() {
-    let checkList = document.getElementsByName('checkList');
-
+function checkPend() {
+    let checkList = document.getElementsByName('pendCheckList');
     checkList.forEach((pend, index) => {
         pend.addEventListener('click', (e) => {
             let delDiv = pend.parentElement.parentElement.parentElement;
-            let delText = delDiv.querySelector('#todoText');
-
+            let delText = delDiv.querySelector('#pendText');
             let storageObject = localStorage[localStorage.getItem('current')];
             schedule = JSON.parse(storageObject);
-
             let delIndex = schedule.pending.indexOf(delText.innerHTML);
-
             schedule.pending.splice(delIndex, 1);
-
             schedule.finished.push(delText.innerHTML);
-
             localStorage[localStorage.getItem('current')] = JSON.stringify(schedule);
-
             location.reload(true);
-
         });
     });
 }
 
-function deleteTodo() {
-    let btnList = document.getElementsByName('delBtnList');
-    console.log(btnList);
-
+function deletePend() {
+    let btnList = document.getElementsByName('pendBtnList');
     btnList.forEach((btn, index) => {
         btn.addEventListener('click', (e) => {
             let delDiv = btn.parentElement.parentElement.parentElement;
-            let delText = delDiv.querySelector('#delBtn');
-
+            let delText = delDiv.querySelector('#pendText');
             let storageObject = localStorage[localStorage.getItem('current')];
             schedule = JSON.parse(storageObject);
-
-            let delIndex = schedule.finished.indexOf(delText.innerHTML);
-
-            schedule.finished.splice(delIndex, 1);
-
+            let delIndex = schedule.pending.indexOf(delText.innerHTML);
+            schedule.pending.splice(delIndex, 1);
             localStorage[localStorage.getItem('current')] = JSON.stringify(schedule);
+            location.reload(true);
+        })
+    })
+}
 
+function checkFinish() {
+    let checkList = document.getElementsByName('finishCheckList');
+    checkList.forEach((finish, index) => {
+        finish.addEventListener('click', (e) => {
+            let delDiv = finish.parentElement.parentElement.parentElement;
+            let delText = delDiv.querySelector('#finishText');
+            let storageObject = localStorage[localStorage.getItem('current')];
+            schedule = JSON.parse(storageObject);
+            let delIndex = schedule.finished.indexOf(delText.innerHTML);
+            schedule.finished.splice(delIndex, 1);
+            schedule.pending.push(delText.innerHTML);
+            localStorage[localStorage.getItem('current')] = JSON.stringify(schedule);
+            location.reload(true);
+        })
+    })
+}
+
+function deleteFinish() {
+    let btnList = document.getElementsByName('finishBtnList');
+    btnList.forEach((btn, index) => {
+        btn.addEventListener('click', (e) => {
+            let delDiv = btn.parentElement.parentElement.parentElement;
+            let delText = delDiv.querySelector('#finishText');
+            let storageObject = localStorage[localStorage.getItem('current')];
+            schedule = JSON.parse(storageObject);
+            let delIndex = schedule.finished.indexOf(delText.innerHTML);
+            schedule.finished.splice(delIndex, 1);
+            localStorage[localStorage.getItem('current')] = JSON.stringify(schedule);
             location.reload(true);
         });
     });
