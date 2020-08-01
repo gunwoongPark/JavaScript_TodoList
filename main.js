@@ -1,5 +1,10 @@
 // localStorage.clear();
 
+if (localStorage.length == 0) {
+    localStorage.isLogin = false;
+    localStorage.current = 'none';
+}
+
 let clock = document.querySelector('#clock');
 
 setInterval(getTime, 1000);
